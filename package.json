@@ -1,0 +1,77 @@
+{
+  "name": "@quantumdev/vue-command-palette",
+  "version": "0.1.0",
+  "description": "A fast, accessible ⌘K command palette for Vue 3 — fuzzy search, async sources, nested pages, recent items, zero dependencies.",
+  "license": "MIT",
+  "author": "Quantum Dev (https://quantumdevteam.com)",
+  "homepage": "https://github.com/Quantum-dev1/vue-command-palette#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Quantum-dev1/vue-command-palette.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Quantum-dev1/vue-command-palette/issues"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "command-palette",
+    "cmdk",
+    "command-menu",
+    "fuzzy-search",
+    "spotlight",
+    "kbar",
+    "accessibility"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-command-palette.js",
+  "module": "./dist/vue-command-palette.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/vue-command-palette.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "scripts": {
+    "dev": "vite --config vite.demo.config.ts",
+    "build": "npm run build:lib && npm run build:types",
+    "build:lib": "vite build",
+    "build:types": "vue-tsc -p tsconfig.build.json",
+    "build:demo": "vite build --config vite.demo.config.ts",
+    "preview:demo": "vite preview --config vite.demo.config.ts",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "screenshot": "npm run build:demo && node scripts/screenshot.mjs",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.5",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/eslint-config-typescript": "^14.9.0",
+    "@vue/test-utils": "^2.5.1",
+    "eslint": "^10.12.0",
+    "eslint-plugin-vue": "^10.11.1",
+    "jsdom": "^29.1.1",
+    "playwright": "^1.64.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.4",
+    "vue": "^3.5.44",
+    "vue-tsc": "^3.3.13"
+  }
+}
