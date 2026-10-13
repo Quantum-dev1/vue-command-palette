@@ -45,6 +45,14 @@ describe('fuzzyMatch', () => {
     expect(fuzzyMatch('ab', 'xa-xbxab')?.indices).toEqual([6, 7])
   })
 
+  it('rejects weak, widely scattered matches', () => {
+    expect(fuzzyMatch('go', 'Toggle dark mode')).toBeNull()
+    expect(fuzzyMatch('go', 'Change accent color')).toBeNull()
+    expect(fuzzyMatch('go', 'Go to Features')).not.toBeNull()
+    // Single characters always match if present.
+    expect(fuzzyMatch('z', 'Organize the bazaar')).not.toBeNull()
+  })
+
   it('prefers consecutive matches', () => {
     expect(score('dark', 'Dark mode')).toBeGreaterThan(score('dark', 'Do a rank'))
   })

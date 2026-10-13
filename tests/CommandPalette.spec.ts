@@ -239,6 +239,18 @@ describe('nested pages', () => {
     await press(w, 'Enter')
     expect(items[4]!.page!.items![0]!.perform).toHaveBeenCalled()
   })
+
+  it('reflects reactive changes to an open nested page', async () => {
+    const items = makeItems()
+    const w = mountPalette({ items })
+    await press(w, 'End')
+    await press(w, 'Enter')
+    expect(options(w).map((o) => o.text())).toEqual(['Dark', 'Light'])
+    const updated = makeItems()
+    updated[4]!.page!.items!.push({ id: 'theme-system', title: 'System' })
+    await w.setProps({ items: updated })
+    expect(options(w).map((o) => o.text())).toEqual(['Dark', 'Light', 'System'])
+  })
 })
 
 describe('recent items', () => {
@@ -354,6 +366,20 @@ describe('async sources', () => {
     expect(options(w).map((o) => o.find('.vcp-item-title').text())).toEqual(['Alice Martin'])
     expect(w.findAll('mark').map((m) => m.text()).join('')).toBe('Ali')
   })
+
+  it('does not restart in-flight searches when an equivalent sources array is passed', async () => {
+    vi.useFakeTimers()
+    const fetch = vi.fn<CommandSource['fetch']>(() => Promise.resolve([{ id: 'r', title: 'Result' }]))
+    const make = (): CommandSource[] => [{ id: 'remote', debounce: 100, fetch }]
+    const w = mountPalette({ items: [], sources: make() })
+    await input(w).setValue('res')
+    await vi.advanceTimersByTimeAsync(60)
+    await w.setProps({ sources: make() }) // new array, same source ids (e.g. inline `:sources="[...]"`)
+    await vi.advanceTimersByTimeAsync(60)
+    expect(fetch).toHaveBeenCalledTimes(1)
+    await flushPromises()
+    expect(options(w).map((o) => o.text())).toEqual(['Result'])
+  })
 })
 
 describe('slots', () => {
@@ -373,5 +399,20 @@ describe('slots', () => {
     const w = mountPalette({}, { empty: ({ query }: { query: string }) => h('p', `No match for “${query}”`) })
     await input(w).setValue('qqq')
     expect(w.find('.vcp-empty').text()).toBe('No match for “qqq”')
+  })
+})
+
+describe('CommandHighlight', () => {
+  it('wraps matched segments in <mark>', async () => {
+    const { CommandHighlight } = await import('../src/CommandHighlight')
+    const w = mount(CommandHighlight, {
+      props: {
+        segments: [
+          { text: 'Set', match: true },
+          { text: 'tings', match: false },
+        ],
+      },
+    })
+    expect(w.html()).toBe('<span class="vcp-highlight"><mark class="vcp-match">Set</mark>tings</span>')
   })
 })

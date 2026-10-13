@@ -1,4 +1,5 @@
 export { default as CommandPalette } from './CommandPalette.vue'
+export { CommandHighlight } from './CommandHighlight'
 export { useHotkey } from './composables/useHotkey'
 export { fuzzyMatch, matchFields, tokenize } from './core/fuzzy'
 export type { FuzzyMatch, FieldMatch, SearchFields } from './core/fuzzy'

@@ -23,6 +23,8 @@ const MAX_LEADING_PENALTY = 20
 const BONUS_EXACT = 60
 const BONUS_PREFIX = 30
 const BONUS_CONTIGUOUS = 25
+/** Multi-character terms must average at least this many points per character; weaker scattered matches are dropped. */
+const MIN_SCORE_PER_CHAR = 8
 
 const SEPARATOR = /[\s\-_/.:,()[\]|>]/
 
@@ -140,6 +142,7 @@ export function fuzzyMatch(term: string, target: string): FuzzyMatch | null {
   // Slight preference for shorter targets so "Theme" beats "Theme settings (advanced)".
   total -= (n - m) * 0.1
 
+  if (m >= 2 && total < m * MIN_SCORE_PER_CHAR) return null
   return { score: total, indices }
 }
 

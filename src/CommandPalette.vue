@@ -67,13 +67,23 @@ interface Frame {
   parentQuery: string
 }
 
+interface StackEntry {
+  key: string
+  /** Id of the item that opened the page, used to pick up reactive changes to its `page`. */
+  itemId?: string
+  /** Snapshot of the page when it was opened (fallback if the item disappears). */
+  page: CommandPage
+  fallbackTitle?: string
+  parentQuery: string
+}
+
 const uid = useId()
 const listId = `${uid}-listbox`
 const optionId = (index: number): string => `${uid}-option-${index}`
 const headingId = (section: ResultSection): string => `${uid}-group-${section.id.replace(/[^\w-]/g, '_')}`
 
 const query = ref('')
-const stack = shallowRef<Frame[]>([])
+const entries = shallowRef<StackEntry[]>([])
 const activeKey = ref<string | null>(null)
 const inputRef = ref<HTMLInputElement | null>(null)
 const dialogRef = ref<HTMLElement | null>(null)
@@ -87,8 +97,23 @@ const rootFrame = computed<Frame>(() => ({
   sources: props.sources,
   parentQuery: '',
 }))
+// Nested pages are re-resolved from the live `items` prop so reactive changes (e.g. a "Current" badge) show up.
+const stack = computed<Frame[]>(() =>
+  entries.value.map((entry) => {
+    const live = entry.itemId ? findItemById(props.items, entry.itemId)?.page : undefined
+    const target = live ?? entry.page
+    return {
+      key: entry.key,
+      title: target.title ?? entry.fallbackTitle,
+      placeholder: target.placeholder,
+      items: target.items ?? EMPTY_ITEMS,
+      sources: target.sources ?? EMPTY_SOURCES,
+      parentQuery: entry.parentQuery,
+    }
+  }),
+)
 const page = computed<Frame>(() => stack.value.at(-1) ?? rootFrame.value)
-const isRoot = computed(() => stack.value.length === 0)
+const isRoot = computed(() => entries.value.length === 0)
 const placeholderText = computed(() => page.value.placeholder ?? props.placeholder)
 
 // ---------------------------------------------------------------- recent items
@@ -112,8 +137,11 @@ const asyncSearch = new AsyncSearch((states) => {
 })
 const loading = computed(() => [...asyncStates.value.values()].some((s) => s.loading))
 
+// Re-run only when the set of sources actually changes, so inline `:sources="[...]"` arrays are safe.
+const sourcesKey = computed(() => `${page.value.key}|${page.value.sources.map((s) => s.id).join('|')}`)
+
 watch(
-  [() => page.value.sources, query, open],
+  [sourcesKey, query, open],
   () => {
     if (!open.value) {
       asyncSearch.reset()
@@ -188,7 +216,7 @@ const announcement = computed(() => {
   return n === 0 ? props.emptyText : `${n} result${n === 1 ? '' : 's'} available.`
 })
 
-watch([query, page], () => {
+watch([query, () => page.value.key], () => {
   activeKey.value = null
 })
 
@@ -231,17 +259,10 @@ function focusInput(): void {
   void nextTick(() => inputRef.value?.focus())
 }
 
-function pushPage(target: CommandPage, fallbackTitle?: string): void {
-  stack.value = [
-    ...stack.value,
-    {
-      key: `page-${++frameCounter}`,
-      title: target.title ?? fallbackTitle,
-      placeholder: target.placeholder,
-      items: target.items ?? EMPTY_ITEMS,
-      sources: target.sources ?? EMPTY_SOURCES,
-      parentQuery: query.value,
-    },
+function pushPage(target: CommandPage, fallbackTitle?: string, itemId?: string): void {
+  entries.value = [
+    ...entries.value,
+    { key: `page-${++frameCounter}`, itemId, page: target, fallbackTitle, parentQuery: query.value },
   ]
   query.value = ''
   focusInput()
@@ -249,14 +270,14 @@ function pushPage(target: CommandPage, fallbackTitle?: string): void {
 
 function back(): void {
   if (isRoot.value) return
-  const top = stack.value.at(-1)!
-  stack.value = stack.value.slice(0, -1)
+  const top = entries.value.at(-1)!
+  entries.value = entries.value.slice(0, -1)
   query.value = top.parentQuery
   focusInput()
 }
 
 function goTo(depth: number): void {
-  while (stack.value.length > depth) back()
+  while (entries.value.length > depth) back()
 }
 
 function close(): void {
@@ -281,7 +302,7 @@ async function select(result: ResultItem | undefined): Promise<void> {
   emit('select', item)
 
   if (item.page) {
-    pushPage(item.page, item.title)
+    pushPage(item.page, item.title, result.sourceId ? undefined : item.id)
     return
   }
 
@@ -374,7 +395,7 @@ watch(
       const active = document.activeElement
       previouslyFocused = active instanceof HTMLElement && active !== document.body ? active : null
       query.value = ''
-      stack.value = []
+      entries.value = []
       activeKey.value = null
       refreshRecent()
       lockScroll()
