@@ -218,7 +218,7 @@ const features = [
   { icon: '🗂️', title: 'Nested pages', text: '“Theme →”-style sub-menus with breadcrumbs, Backspace to go back, deep search across pages.' },
   { icon: '♿', title: 'Accessible', text: 'ARIA combobox + listbox, focus trap, focus restore, live result announcements.' },
   { icon: '🎨', title: 'Themeable', text: 'Light, dark or auto. Every color, radius and size is a CSS variable.' },
-  { icon: '🪶', title: 'Tiny & typed', text: 'Zero runtime dependencies besides Vue. ~8 kB gzipped JS. Written in TypeScript.' },
+  { icon: '🪶', title: 'Tiny & typed', text: 'Zero runtime dependencies besides Vue. ~8.6 kB gzipped JS. Written in TypeScript.' },
 ]
 
 // Split closing tag so the SFC parser does not end this <script> block early.
