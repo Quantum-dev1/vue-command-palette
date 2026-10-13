@@ -38,7 +38,7 @@ Give power users a keyboard-first way to navigate and act in your app. Drop in o
 ## Quick start
 
 ```bash
-npm i @quantumdev/vue-command-palette
+npm i github:Quantum-dev1/vue-command-palette
 ```
 
 ```vue

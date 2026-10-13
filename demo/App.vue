@@ -13,7 +13,7 @@ import { searchPeople } from './fake-api'
 
 type ThemeChoice = 'light' | 'dark' | 'system'
 
-const INSTALL = 'npm i @quantumdev/vue-command-palette'
+const INSTALL = 'npm i github:Quantum-dev1/vue-command-palette'
 const REPO = 'https://github.com/Quantum-dev1/vue-command-palette'
 
 const ACCENTS = [
